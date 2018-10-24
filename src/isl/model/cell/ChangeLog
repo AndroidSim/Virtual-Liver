@@ -1,0 +1,91 @@
+2018-08-23-10:37  gepr  <gepr@tempusdictum.com>
+
+	* Hepatocyte, Cell (canCross()): Promote transportOut test from Hepatocyte to Cell.
+
+2018-08-22-09:41  gepr  <gepr@tempusdictum.com>
+
+	* Cell.java (canCross()): Add additional test for a Solute-specific "cellEnterExitProb" entry, which overrides the model-wide parameter.
+	* Hepatocyte.java (canCross()): Replace test for transportOut parameter which was accidentally deleted with the last checkin.
+
+2018-08-17-09:54  gepr  <gepr@tempusdictum.com>
+
+	* Cell.java (CROSS_PROB, canCross()): Δ MEMBRANE_CROSS_PROB ∈ ℝ static variable to CROSS_PROB ∈ Double2D.  Add a test for which direction being crossed (IN or OUT) and use the appropriate one.
+	Add a polymorph for canCross() in order for the instance upon which it's called to send its class' CROSS_PROB, rather than use the super's.
+	* Hepatocyte, EC, KupfferCell (CROSS_PROB, canCross()): Include the class variable CROSS_PROB, a setter, and the canCross() without the Double2D probabilities argument.
+
+2018-08-16-12:37  gepr  <gepr@tempusdictum.com>
+
+	* Cell.java (accept(), canItLeave(), canCross()): Unify accept() and canItLeave() into canCross(,[IN|OUT]), respectively. Note that accept() called add() whereas canItLeave() did not call remove(). So, calls to canCross() also need to be reconciled to add() the Solute when necessary.
+	* Hepatocyte.java (add(), eliminatedByGSH()): Because Hepatocyte.accept() overrode Cell.accept() in order to handle GSH Solute removal, that logic was moved to add() to unify accept() and canItLeave(). eliminatedByGSH() is a new method.
+
+2018-06-12-07:58  gepr  <gepr@tempusdictum.com>
+
+	* Hepatocyte.java (amplify()): Refactor to parameterize the [min,max) bounds of the uniform distribution. Change unconventional capitalized variable names to conventional lower/camel case.
+
+2018-06-11  aks   <drandrewksmith@gmail.com>
+
+	* Hepatocyte.java: changed amplification distribution to uniform [min, max]
+
+2018-05-24  aks   <drandrewksmith@gmail.com>
+
+	* Hepatocyte.java: changed amplification distribution from gaussian (mean=4, std=1) to uniform ([0,2])
+
+2018-04-05  aks   <drandrewksmith@gmail.com>
+
+	* Hepatocyte.java, Transporter.java: commented out log calls for ALT release mechanism verification to decrease file size while running.
+
+2018-04-04  aks   <drandrewksmith@gmail.com>
+
+	* Hepatocyte.java (altRelease(), amplify(Solute s)): commented out or moved output to log calls in altRelease() to speed up execution and decrease log length. Also, lowered amplification in amplify(Solute s) from uniform [0,6] to [0,2].
+
+2018-03-23-09:43  gepr  <gepr@tempusdictum.com>
+
+	* Hepatocyte.java (transportSolute()): Use the logic that bottlenecks Solute movement through present(), forget(), remove(), and add().
+
+2018-03-23-09:42  gepr  <gepr@tempusdictum.com>
+
+	* Cell.java (remove()): Add polymorphic that accepts a boolean indicating whether or not the removal should be measured or treated as a leak. And eliminate the leaky IVar stub.
+
+2018-03-20  aks   <drandrewksmith@gmail.com>
+
+	*Transporter.java: added check for transport delay min == transport delay, and if so, then set time delay = min; otherwise, uniform random [min, max]
+
+2018-03-12  aks   <drandrewksmith@gmail.com>
+
+	* Transporter.java: moved from isl.model package.
+	* Hepatocyte.java (getALTAmount(), ALTRelease(), transportSolute(Solute s)): new method tto return the ALT amount counter for measurements, ALT release mechanism within its own method (also the ALT mechanism no longer accounts for previous damage, so creation of ALT only when membrane damage > threshold), and removed adding the newly created ALT Solute to the Hepatocyte's solute array list and now transport is just adding the ALT Solute to the grid space and SS's solute list. 
+
+2018-02-23-12:12  gepr  <gepr@tempusdictum.com>
+
+	* Reaction[Info|Handler] (present()): Calls the alternate form with the extra boolean parameter.
+	* Hepatocyte.java (present(), bileAndAmpHandling()): Polymorphic override to Cell.present() specifying whether we should perform the bileAndAmpHandling() operations. bileAndAmplify() is executed for new Solute coming in and for new reaction products being produced inside, but NOT for any new Solute created as a result of Amplification.  If we did it for amplified product, we'd have to handle the infinite recursion it would cause.
+	* Cell.java (present(), forget()): Moved the methods to be closer to add().
+
+2018-02-19-14:45  gepr  <gepr@tempusdictum.com>
+
+	* Cell.java (remove()): Throw an exception if you try to remove something that's not present.
+
+2018-02-19-11:53  gepr  <gepr@tempusdictum.com>
+
+	* Hepatocyte.java (canItLeave()): Add call to countMove() here since we don't call super.
+	* Cell.java (accept(), canItLeave()): Promote the countMove() call out of the if-clause (which prevented some rejects and traps from being logged.
+
+2018-02-16-12:04  gepr  <gepr@tempusdictum.com>
+
+	* ReactionInfo.java: Δ add() to present() to reflect that Solute created inside the Cell doesn't "enter" that Cell.
+	* ReactionHandler.java (run()): Δ rxn_info.add(rxnProduct) → rxn_info.present(rxnProduct) so that the introduction of this new Solute doesn't trigger an "entry" MIT.
+
+2018-02-13-11:24  gepr  <gepr@tempusdictum.com>
+
+	* Cell.java (MEMBRANE_CROSS_PROB, accept(), canItLeave()): New class variable to specify a pRNG draw when a Solute tries to enter or exit any Cell. The code also checks for solute-specific, dynamic, membraneCrossProb property in types.properties.
+
+2018-02-08-16:15  gepr  <gepr@tempusdictum.com>
+
+	* NecrosisHandler: Use read-only list of Cell.solutes.
+	* Hepatocyte, KupfferCell, Reaction[Handler|Info]: Use new bottleneck methods.
+	* Cell.java (entries, exits, rejects, and traps): New IVars to count Solute that enters, exits, is rejected (by accept()) and is trapped (by a failed canItLeave()).
+	(add(), remove(), present(), forget()): New methods to encapsulate counting of exits, entries, rejects, and traps. present() and forget() handle the construction and destruction of Solute (which don't "enter" or "exit" because they're made by the Cell).
+
+2018-02-07-10:31  gepr  <gepr@tempusdictum.com>
+
+	* isl.model.cell: New package to encapsulate Cell-centric code.
